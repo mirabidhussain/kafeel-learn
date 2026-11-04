@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Kafeel's Learn &amp; Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#e9f6ff; --ink:#24324a; --soft:#5d6b82;
+    --math:#ff8a3d; --math-d:#e2671a; --sci:#2bb673; --sci-d:#1c9259;
+    --sun:#ffd23f; --berry:#ff5d8f; --grape:#7b61ff; --card:#ffffff;
+    --good:#2bb673; --bad:#ff6b6b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:'Baloo 2',system-ui,sans-serif;color:var(--ink);
+    background:linear-gradient(180deg,#bfe6ff 0%,var(--sky) 45%,#fff8e6 100%);
+    min-height:100%;overflow-x:hidden;user-select:none;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:16px 16px 40px;min-height:100vh;position:relative}
+  .screen{display:none;animation:pop .35s ease}
+  .screen.on{display:block}
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+
+  /* header */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .stars{background:#fff;border-radius:999px;padding:6px 14px;font-weight:800;font-size:20px;box-shadow:0 3px 0 #0001}
+  .hello{text-align:center;margin:6px 0 2px}
+  .hello h1{font-size:40px;line-height:1;margin:0;color:var(--grape);text-shadow:0 3px 0 #fff}
+  .hello p{margin:4px 0 0;color:var(--soft);font-size:18px}
+  .mascot{font-size:64px;display:inline-block;animation:bob 2.4s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-8px) rotate(-4deg)}}
+
+  .age{display:flex;background:#fff;border-radius:18px;padding:5px;margin:14px auto;max-width:420px;box-shadow:0 4px 0 #0001}
+  .age button{flex:1;border:0;background:transparent;font:inherit;font-size:17px;font-weight:700;padding:10px 6px;border-radius:14px;color:var(--soft);cursor:pointer}
+  .age button.on{background:var(--grape);color:#fff}
+
+  .world{border-radius:26px;padding:14px;margin:16px 0;box-shadow:0 6px 0 #0001}
+  .world.math{background:#fff1e6}
+  .world.sci{background:#e6f8ef}
+  .world h2{margin:0 0 10px;font-size:26px;display:flex;align-items:center;gap:8px}
+  .world.math h2{color:var(--math-d)} .world.sci h2{color:var(--sci-d)}
+  .games{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .game{border:0;font:inherit;background:#fff;border-radius:20px;padding:14px 10px;cursor:pointer;
+    box-shadow:0 5px 0 #0002;transition:transform .1s;text-align:center;color:var(--ink)}
+  .game:active{transform:translateY(4px);box-shadow:0 1px 0 #0002}
+  .game .ic{font-size:44px;display:block}
+  .game b{display:block;font-size:19px;line-height:1.1;margin-top:4px}
+  .game small{color:var(--soft);font-size:14px}
+  .game .best{display:block;font-size:14px;margin-top:2px;min-height:18px}
+
+  /* play screen */
+  .back{border:0;background:#fff;font:inherit;font-weight:800;font-size:18px;border-radius:14px;padding:8px 14px;cursor:pointer;box-shadow:0 3px 0 #0002}
+  .progress{flex:1;height:16px;background:#fff;border-radius:999px;overflow:hidden;box-shadow:inset 0 2px 0 #0001}
+  .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--sun),var(--berry));transition:width .4s}
+  .stage{background:#fff;border-radius:28px;padding:18px 14px 20px;margin-top:12px;box-shadow:0 6px 0 #0001;text-align:center;position:relative}
+  .q{font-size:26px;font-weight:800;margin:0 0 6px;line-height:1.15}
+  .speak{border:0;background:#f0edff;border-radius:999px;font-size:20px;padding:4px 12px;cursor:pointer;margin-bottom:6px}
+  .show{min-height:120px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;
+        font-size:44px;line-height:1.1;padding:8px;margin:6px 0 10px;background:#f7fbff;border-radius:20px}
+  .show .big{font-size:64px}
+  .show .num{font-size:56px;font-weight:800;color:var(--grape)}
+  .show .op{font-size:48px;font-weight:800;color:var(--berry);margin:0 4px}
+  .grp{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:46%;padding:8px;border-radius:16px;background:#fff;border:3px dashed #dfe7f2}
+  .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .opts.three{grid-template-columns:repeat(3,1fr)}
+  .opt{border:0;font:inherit;font-size:30px;font-weight:800;background:var(--sun);color:var(--ink);border-radius:20px;
+       padding:14px 6px;min-height:76px;cursor:pointer;box-shadow:0 6px 0 #d9ad12;transition:transform .08s}
+  .opt small{display:block;font-size:16px;font-weight:700}
+  .opt:active{transform:translateY(5px);box-shadow:0 1px 0 #d9ad12}
+  .opt.right{background:var(--good);color:#fff;box-shadow:0 6px 0 #1c9259;animation:yay .5s}
+  .opt.wrong{background:var(--bad);color:#fff;box-shadow:0 6px 0 #d64545;animation:shake .4s}
+  .opt:disabled{cursor:default}
+  @keyframes yay{40%{transform:scale(1.12)}}
+  @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  .fact{min-height:28px;margin-top:12px;font-size:19px;font-weight:700;color:var(--sci-d)}
+  .fact.oops{color:#d64545}
+
+  /* end */
+  .end{text-align:center;padding-top:20px}
+  .end .trophy{font-size:96px;animation:bob 2s ease-in-out infinite}
+  .end h2{font-size:38px;margin:4px 0;color:var(--grape)}
+  .end .earned{font-size:46px;letter-spacing:4px}
+  .btn{border:0;font:inherit;font-weight:800;font-size:22px;border-radius:20px;padding:14px 26px;margin:8px;cursor:pointer;color:#fff}
+  .btn.go{background:var(--sci);box-shadow:0 6px 0 var(--sci-d)}
+  .btn.home{background:var(--grape);box-shadow:0 6px 0 #5a43d6}
+
+  .confetti{position:fixed;top:-20px;font-size:26px;pointer-events:none;animation:fall linear forwards;z-index:9}
+  @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+  .world.code{background:#efeaff}
+  .world.code h2{color:#5a43d6}
+  .opts.list{grid-template-columns:1fr}
+  .opts.list .opt{text-align:left;padding:10px 12px;font-size:18px}
+  .prog{display:inline-flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left}
+  .blk{border-radius:8px;padding:4px 12px;font-size:17px;color:#fff;font-weight:700;line-height:1.3;box-shadow:0 2px 0 #0002}
+  .blk.ev{background:#ffbf00;color:#3a2a00;border-radius:16px 16px 8px 8px}
+  .blk.mv{background:#4c97ff} .blk.lk{background:#9966ff} .blk.ct{background:#ffab19;color:#3a2a00}
+  .loop{border-left:12px solid #ffab19;padding:3px 0 3px 6px;display:flex;flex-direction:column;gap:3px;border-radius:0 0 0 8px}
+  .grid{display:grid;gap:4px;background:#d9f2d9;padding:6px;border-radius:14px}
+  .grid div{width:52px;height:52px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:34px}
+  .tens{display:flex;gap:6px;align-items:flex-end}
+  .ten{display:grid;grid-template-rows:repeat(10,9px);gap:1px;background:#2b7bff;padding:2px;border-radius:4px}
+  .ten i{width:14px;background:#7fb2ff;border-radius:2px}
+  .one{width:16px;height:16px;background:#ff8a3d;border-radius:3px;display:inline-block;margin:2px}
+  .coin{width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#e0b23a 60%,#b8871a);
+        display:inline-flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#5a3d00;box-shadow:0 3px 0 #8a6510}
+  .coin.big{width:70px;height:70px;background:radial-gradient(circle at 35% 30%,#f4f4f4,#b9c0c8 60%,#7e8790);color:#333;box-shadow:0 3px 0 #59606a}
+  .lesson{text-align:left}
+  .lesson #lBody{font-size:21px;line-height:1.45}
+  .lesson .ex{font-size:42px;text-align:center;background:#f7fbff;border-radius:18px;padding:10px;margin:10px 0;line-height:1.25}
+  .lesson .ex small{display:block;font-size:20px;color:var(--soft);font-weight:700}
+  .lesson .tip{background:#fff7d6;border-radius:14px;padding:8px 12px;font-size:18px;margin-top:8px}
+  .game .best{color:var(--sci-d);font-weight:800}
+  .setrow{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700;background:#fff;border-radius:14px;padding:4px 8px}
+  .setrow span{min-width:150px;text-align:left}
+  .sbtn{border:0;font:inherit;font-size:30px;font-weight:800;width:58px;height:52px;border-radius:14px;background:#efeaff;color:#5a43d6;box-shadow:0 4px 0 #cfc6ff;cursor:pointer}
+  .sbtn:active{transform:translateY(3px);box-shadow:0 1px 0 #cfc6ff}
+  .foot{text-align:center;color:var(--soft);font-size:14px;margin-top:20px}
+  .sndbtn{border:0;background:#fff;border-radius:999px;font-size:20px;padding:6px 12px;cursor:pointer;box-shadow:0 3px 0 #0001}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HOME -->
+  <section class="screen on" id="home">
+    <div class="top">
+      <button class="sndbtn" id="snd" aria-label="Sound on or off">🔊</button>
+      <div class="stars">📘 <span id="starCount">0</span> done</div>
+    </div>
+    <div class="hello">
+      <span class="mascot">🦉</span>
+      <h1>Learn &amp; Practice</h1>
+      <p id="greet">Pick a game and collect stars!</p>
+    </div>
+    <div class="age" role="tablist">
+      <button data-age="little">🐣 Little (3–5)</button>
+      <button data-age="big" class="on">🚀 Big (6–9)</button>
+    </div>
+
+    <div class="world math">
+      <h2>🔢 Maths</h2>
+      <div class="games" id="mathGames"></div>
+    </div>
+    <div class="world code">
+      <h2>🧠 Logic &amp; Coding</h2>
+      <div class="games" id="codeGames"></div>
+    </div>
+    <div class="world sci">
+      <h2>🔬 Science</h2>
+      <div class="games" id="sciGames"></div>
+    </div>
+    <p class="foot">Each topic: read the lesson 📖 → answer 5 practice questions ✏️. Tap 🗣️ to hear it read aloud.</p>
+  </section>
+
+  <!-- LEARN -->
+  <section class="screen" id="learn">
+    <div class="top">
+      <button class="back" id="lQuit">← Back</button>
+      <div style="font-weight:800;font-size:18px" id="lCount"></div>
+    </div>
+    <div class="stage lesson">
+      <div style="font-size:16px;font-weight:800;color:var(--grape)" id="lTopic"></div>
+      <h3 id="lHead" style="font-size:28px;margin:4px 0 8px;line-height:1.15"></h3>
+      <div id="lBody"></div>
+      <button class="speak" id="lSay" style="margin-top:12px">🗣️ Read to me</button>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn home" id="lPrev" style="flex:1;margin:0;font-size:19px;padding:12px">◀ Back</button>
+      <button class="btn go" id="lNext" style="flex:2;margin:0;font-size:19px;padding:12px">Next ▶</button>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="screen" id="play">
+    <div class="top">
+      <button class="back" id="quit">← Back</button>
+      <div class="progress"><i id="bar"></i></div>
+      <div class="stars">✔️ <span id="roundStars">0</span>/5</div>
+    </div>
+    <div class="stage">
+      <p class="q" id="qText"></p>
+      <button class="speak" id="say">🗣️ Hear it</button>
+      <div class="show" id="qShow"></div>
+      <div class="opts" id="opts"></div>
+      <div class="fact" id="fact"></div>
+    </div>
+  </section>
+
+  <!-- END -->
+  <section class="screen" id="end">
+    <div class="end">
+      <div class="trophy" id="trophy">📘</div>
+      <h2 id="endTitle">Great job!</h2>
+      <div class="earned" id="earned"></div>
+      <p id="endMsg" style="font-size:20px;color:var(--soft)"></p>
+      <button class="btn go" id="again">✏️ Practise again</button><br>
+      <button class="btn go" id="reread" style="background:#ff8a3d;box-shadow:0 6px 0 #e2671a">📖 Read lesson again</button><br>
+      <button class="btn home" id="toHome">🏠 Home</button>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const rnd = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const blk=(c,t)=>`<div class="blk ${c}">${t}</div>`;
+const prog=arr=>`<div class="prog">${arr.join('')}</div>`;
+const shuffle = arr => { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem('pl_'+k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem('pl_'+k,JSON.stringify(v)); }catch(e){} }
+};
+function numOpts(ans,min,max,count=4){
+  const s=new Set([ans]); let guard=0;
+  while(s.size<count && guard++<200){ const v=ans+rnd(-3,3); if(v>=min && v<=max) s.add(v); }
+  while(s.size<count){ s.add(rnd(min,max)); }
+  return shuffle([...s]).map(v=>({label:String(v),value:v}));
+}
+
+/* ---------- state ---------- */
+const KID='Kafeel';
+let age = store.get('age','big');
+let totalStars = store.get('stars',0);
+let best = store.get('best',{});
+let soundOn = store.get('sound',true);
+let current=null, qIndex=0, roundStars=0, firstTry=true, currentQ=null;
+const ROUND = 5;
+
+/* ---------- sound (Web Audio, starts on tap) ---------- */
+let ac=null;
+function tone(freqs,dur=.12,type='sine'){
+  return;
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{
+      const o=ac.createOscillator(), g=ac.createGain();
+      o.type=type; o.frequency.value=f;
+      const t=ac.currentTime+i*dur;
+      g.gain.setValueAtTime(.18,t); g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t+dur*1.7);
+    });
+  }catch(e){}
+}
+const sGood=()=>tone([660,880,1100],.1,'triangle');
+const sBad =()=>tone([300,220],.15,'sawtooth');
+const sWin =()=>tone([523,659,784,1046,784,1046],.12,'triangle');
+function speak(text){
+  if(!soundOn) return;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text.replace(/[^\w\s?,.!'+-]/g,'')); u.rate=.9; u.pitch=1.2; speechSynthesis.speak(u);}catch(e){}
+}
+
+/* ---------- content ---------- */
+const FRUITS=['🍎','🍌','🍓','🍊','🍇','🚗','🏎️','🚙','🐞','⚽','🎈','🥇'];
+const LIVING=[
+ ['🐶',1,'Dogs breathe, eat and grow.'],['🌳',1,'Trees are alive! They drink water and grow.'],['🐦',1,'Birds eat, breathe and lay eggs.'],
+ ['🌻',1,'Flowers grow towards the sun.'],['🐟',1,'Fish breathe with gills.'],['🐛',1,'Caterpillars grow into butterflies!'],
+ ['👶',1,'Babies grow into big kids, like you!'],['🍄',1,'Mushrooms are living things too.'],['🐄',1,'Cows eat grass and give milk.'],
+ ['🪨',0,'A rock does not eat, breathe or grow.'],['🚗',0,'A car moves, but it is not alive.'],['🧸',0,'Teddy is soft, but not alive.'],
+ ['✏️',0,'A pencil cannot grow.'],['⚽',0,'A ball does not breathe.'],['☂️',0,'An umbrella is not alive.'],['🪑',0,'A chair is made from wood but is not living now.'],
+ ['📱',0,'A phone needs a battery, not food.'],['⏰',0,'A clock ticks but does not grow.']
+];
+const HOMES=[
+ ['🐟','water','Fish live in water and swim with fins.'],['🐳','water','Whales live in the deep sea.'],['🐙','water','An octopus has 8 arms and lives in the sea.'],
+ ['🐒','tree','Monkeys swing from tree to tree.'],['🦉','tree','Owls rest in trees and wake up at night.'],['🐿️','tree','Squirrels keep nuts in trees.'],
+ ['🐪','desert','Camels can go many days without water.'],['🦂','desert','Scorpions hide under desert sand.'],
+ ['🐧','ice','Penguins love cold, icy places.'],['🐻‍❄️','ice','Polar bears have thick fur to stay warm.'],
+ ['🐄','farm','Cows live on farms and eat grass.'],['🐓','farm','Hens on the farm lay eggs.'],['🐑','farm','Sheep give us wool.']
+];
+const HOME_OPTS={water:'🌊 Water',tree:'🌳 Tree',desert:'🏜️ Desert',ice:'🧊 Ice',farm:'🚜 Farm'};
+const FLOAT=[
+ ['🪵',1,'Wood is light, so it floats.'],['🦆',1,'Ducks float with oily feathers.'],['🍎',1,'Apples have air inside, so they float!'],
+ ['⚽',1,'A ball is full of air — it floats.'],['🍃',1,'A leaf is very light and floats.'],['🛟',1,'A float ring is full of air.'],['🧽',1,'A sponge floats on water.'],
+ ['🪨',0,'Rocks are heavy for their size — they sink.'],['🔑',0,'A metal key sinks.'],['🪙',0,'A coin sinks to the bottom.'],
+ ['⚓',0,'An anchor sinks to hold the boat.'],['🔩',0,'A metal bolt sinks.'],['🥚',0,'A fresh egg sinks in plain water.']
+];
+const MATTER=[
+ ['🧊','solid','Ice is solid — it keeps its shape.'],['🪨','solid','A rock is a solid.'],['🧱','solid','Bricks are solid.'],['🍎','solid','An apple is solid.'],
+ ['💧','liquid','Water is a liquid — it flows.'],['🥛','liquid','Milk takes the shape of its glass.'],['🧃','liquid','Juice is a liquid.'],['🍯','liquid','Honey is a slow, thick liquid.'],
+ ['💨','gas','Air is a gas — we cannot see it.'],['♨️','gas','Steam is water as a gas.'],['🎈','gas','Balloons are filled with gas.'],['🫧','gas','Bubbles hold air (a gas) inside.']
+];
+const MATTER_OPTS={solid:'🧱 Solid',liquid:'💧 Liquid',gas:'💨 Gas'};
+const SENSES=[
+ ['see','👀','Eyes','We see colours with our eyes.'],['hear','👂','Ears','We hear music with our ears.'],
+ ['smell','👃','Nose','We smell flowers with our nose.'],['taste','👅','Tongue','We taste food with our tongue.'],['touch','✋','Hands','We feel soft and hard with our skin.']
+];
+const SENSE_THINGS={see:['🌈','📺','⭐'],hear:['🥁','🔔','🎵'],smell:['🌹','🧄','🍞'],taste:['🍭','🍋','🍦'],touch:['🧸','🌵','🧊']};
+const PUSHPULL=[
+ ['⚽ Kicking a ball','push','A kick is a PUSH — it moves the ball away from you.'],
+ ['🪢 Tug of war','pull','Tug of war is a PULL — both teams pull the rope towards them!'],
+ ['🚪 Opening a drawer','pull','You PULL a drawer towards you.'],
+ ['🛒 Moving a trolley','push','You PUSH a trolley forward.'],
+ ['🚗 Toy car rolling away','push','A little PUSH makes the car zoom!'],
+ ['🪁 Flying a kite string','pull','You PULL the string to control the kite.'],
+ ['🔔 Ringing a doorbell','push','You PUSH the button.'],
+ ['🥋 Blocking a punch','push','In martial arts, a block PUSHES the force away.'],
+ ['🐕 Walking a dog on a lead','pull','The dog PULLS the lead!'],
+ ['🧲 Magnet picking up a pin','pull','Magnets PULL iron things towards them.']
+];
+const PLANETS=['☀️ Sun','Mercury','Venus','Earth 🌍','Mars','Jupiter','Saturn 🪐','Uranus','Neptune'];
+
+/* ---------- games ---------- */
+const GAMES={
+ count:{world:'math',ic:'🍎',name:'Counting',sub:'Count objects',
+   make(){
+     const n = age==='little'? rnd(1,6) : rnd(5,15); const e=pick(FRUITS);
+     return {q:`How many ${e} can you count?`, say:'How many can you count?',
+       show:`<div style="max-width:420px">${(e+' ').repeat(n)}</div>`,
+       opts:numOpts(n,1,age==='little'?10:20), ans:n,
+       fact:`Yes! There are ${n}.`};
+   }},
+ add:{world:'math',ic:'➕',name:'Add & Subtract',sub:'Plus and minus',
+   make(){
+     if(age==='little'){
+       const a=rnd(1,4), b=rnd(1,5-a+1>0?Math.max(1,5-a):1), e=pick(FRUITS);
+       return {q:`${a} + ${b} = ?`, say:`${a} plus ${b} makes how many?`,
+         show:`<span>${e.repeat(a)}</span><span class="op">+</span><span>${e.repeat(b)}</span>`,
+         opts:numOpts(a+b,1,10), ans:a+b, fact:`${a} and ${b} make ${a+b}!`};
+     }
+     const plus=Math.random()<.55;
+     let a=rnd(3,15), b=rnd(1,9); if(!plus && b>a) [a,b]=[b,a];
+     const ans= plus? a+b : a-b;
+     return {q:`${a} ${plus?'+':'−'} ${b} = ?`, say:`${a} ${plus?'plus':'minus'} ${b}`,
+       show:`<span class="num">${a}</span><span class="op">${plus?'+':'−'}</span><span class="num">${b}</span><span class="op">=</span><span class="num">?</span>`,
+       opts:numOpts(ans,0,30), ans, fact:`${a} ${plus?'+':'−'} ${b} = ${ans}. Super!`};
+   }},
+ more:{world:'math',ic:'⚖️',name:'More & Less',sub:'Compare numbers',
+   make(){
+     if(age==='little'){
+       let a=rnd(1,6), b=rnd(1,6); while(a===b) b=rnd(1,6);
+       const e=pick(FRUITS);
+       return {q:'Which side has MORE?', say:'Which side has more?',
+         show:`<div class="grp">${e.repeat(a)}</div><div class="grp">${e.repeat(b)}</div>`,
+         opts:[{label:'👈 This side',value:'L'},{label:'That side 👉',value:'R'}], ans:a>b?'L':'R',
+         fact:`${Math.max(a,b)} is more than ${Math.min(a,b)}.`};
+     }
+     let a=rnd(10,99), b=rnd(10,99); while(a===b) b=rnd(10,99);
+     const askBig=Math.random()<.5;
+     return {q:`Which number is ${askBig?'BIGGER':'SMALLER'}?`, say:`Which number is ${askBig?'bigger':'smaller'}?`,
+       show:`<span class="num">${a}</span><span class="op">or</span><span class="num">${b}</span>`,
+       opts:shuffle([a,b]).map(v=>({label:String(v),value:v})), ans: askBig?Math.max(a,b):Math.min(a,b),
+       fact:`${Math.max(a,b)} is bigger than ${Math.min(a,b)}.`};
+   }},
+ pattern:{world:'math',ic:'🔁',name:'Patterns',sub:'What comes next',
+   make(){
+     if(age==='little' || Math.random()<.4){
+       const set=shuffle(FRUITS).slice(0,age==='little'?2:3);
+       const seq=[]; for(let i=0;i<(set.length===2?5:6);i++) seq.push(set[i%set.length]);
+       const ans=set[seq.length%set.length];
+       const opts=shuffle([...new Set([ans,...set,pick(FRUITS)])]).slice(0,3);
+       if(!opts.includes(ans)) opts[0]=ans;
+       return {q:'What comes next?', say:'What comes next in the pattern?',
+         show:seq.join(' ')+' ❓', opts:shuffle(opts).map(v=>({label:v,value:v})), ans, fact:'You found the pattern!', three:true};
+     }
+     const step=pick([2,3,5,10]), start=rnd(1,10)*(step===10?1:1), seq=[0,1,2,3].map(i=>start+i*step), ans=start+4*step;
+     return {q:'What number comes next?', say:'What number comes next?',
+       show:`<span class="num" style="font-size:40px">${seq.join(', ')}, ?</span>`,
+       opts:numOpts(ans,0,100), ans, fact:`We add ${step} each time!`};
+   }},
+ goal:{world:'math',ic:'📝',name:'Word Problems',sub:'Story sums',
+   make(){
+     const max= age==='little'?3:9;
+     const a=rnd(1,max), b=rnd(1,max);
+     const q= age==='little' ? 'How many goals in total?' : pick(['How many goals in total?','How many MORE did Blue team score?']);
+     const diff = q.includes('MORE');
+     let A=a,B=b; if(diff && A<=B){ A=B+rnd(1,3); }
+     const ans = diff ? A-B : A+B;
+     return {q, say:q,
+       show:`<div style="font-size:22px;font-weight:800;width:100%">🔵 Blue team</div><div>${'⚽'.repeat(A)}</div>
+             <div style="font-size:22px;font-weight:800;width:100%">🔴 Red team</div><div>${'⚽'.repeat(B)}</div>`,
+       opts:numOpts(ans,0,20), ans, fact: diff?`${A} − ${B} = ${ans}. GOOOAL! ⚽`:`${A} + ${B} = ${ans} goals. GOOOAL! ⚽`};
+   }},
+ pushpull:{world:'sci',ic:'💪',name:'Push & Pull',sub:'Forces',
+   make(){
+     const [t,a,f]=pick(PUSHPULL);
+     return {q:'Is this a push or a pull?', say:'Is this a push, or a pull? '+t,
+       show:`<span style="font-size:40px">${t}</span>`,
+       opts:[{label:'👉 Push',value:'push'},{label:'👈 Pull',value:'pull'}], ans:a, fact:f};
+   }},
+
+ tens:{world:'math',ic:'🧮',name:'Tens & Ones',sub:'Place value',
+   make(){
+     const t= age==='little'? rnd(1,2) : rnd(1,9), o=rnd(0,9), n=t*10+o;
+     const ten='<div class="ten">'+'<i></i>'.repeat(10)+'</div>';
+     return {q:'What number is this?', say:'Count the tens and ones. What number is this?',
+       show:`<div class="tens">${ten.repeat(t)}</div><div style="max-width:110px">${'<span class="one"></span>'.repeat(o)}</div>
+             <div style="width:100%;font-size:18px;color:#5d6b82">🟦 bar = 10 &nbsp; 🟧 = 1</div>`,
+       opts:numOpts(n,10,99), ans:n, fact:`${t} tens and ${o} ones make ${n}!`};
+   }},
+ money:{world:'math',ic:'🪙',name:'Money',sub:'Rupee coins',
+   make(){
+     const pool= age==='little'? [1,2] : [1,2,5,10];
+     const k= age==='little'? rnd(2,3) : rnd(2,4); const cs=[]; for(let i=0;i<k;i++) cs.push(pick(pool));
+     cs.sort((a,b)=>b-a); const tot=cs.reduce((a,b)=>a+b,0);
+     const item=pick(['🍦','🍭','🧃','🎈','⚽','🍫']);
+     return {q:`How many rupees to buy the ${item}?`, say:'Add the coins. How many rupees?',
+       show:`<span class="big">${item}</span><span class="op">=</span>`+cs.map(c=>`<span class="coin ${c>=5?'big':''}">₹${c}</span>`).join(''),
+       opts:numOpts(tot,1,40).map(o=>({label:'₹'+o.label,value:o.value})), ans:tot, fact:`${cs.join(' + ')} = ₹${tot}`};
+   }},
+ shapes:{world:'math',ic:'🔺',name:'Shapes',sub:'Sides & corners',
+   make(){
+     const SH={circle:['⚪ Circle',0,'<circle cx="60" cy="60" r="48"/>'],triangle:['🔺 Triangle',3,'<polygon points="60,10 112,104 8,104"/>'],
+               square:['🟥 Square',4,'<rect x="14" y="14" width="92" height="92" rx="4"/>'],rectangle:['▬ Rectangle',4,'<rect x="4" y="30" width="112" height="62" rx="4"/>']};
+     const col=pick(['#ff5d8f','#7b61ff','#2bb673','#ff8a3d','#2b7bff']);
+     const k=pick(Object.keys(SH)); const svg=`<svg width="120" height="120" viewBox="0 0 120 120" fill="${col}">${SH[k][2]}</svg>`;
+     if(age==='big' && k!=='circle' && Math.random()<.35){
+       return {q:'How many corners does this shape have?', say:'How many corners does this shape have?', show:svg,
+         opts:[0,3,4,5].map(v=>({label:String(v),value:v})), ans:SH[k][1], fact:`A ${k} has ${SH[k][1]} corners.`};
+     }
+     const objs={circle:['🍩','🕐','🪙'],triangle:['🍕','⛺','📐'],square:['🧇','🎲'],rectangle:['📱','🚪','📺']};
+     const showObj=Math.random()<.4;
+     return {q:'What shape is this?', say:'What shape is this?', show: showObj?`<span class="big">${pick(objs[k])}</span>`:svg,
+       opts:shuffle(Object.keys(SH)).map(x=>({label:`<span style="font-size:22px">${SH[x][0]}</span>`,value:x})), ans:k,
+       fact:`That's a ${k}! ${k==='circle'?'It has no corners.':`It has ${SH[k][1]} corners.`}`};
+   }},
+ time:{world:'math',ic:'🕐',name:'Telling Time',sub:'Clock & hours',
+   make(){
+     const mins= age==='little'? [0] : [0,0,30,30,15,45];
+     const h=rnd(1,12), m=pick(mins);
+     const wrongs=new Set(); let g=0;
+     while(wrongs.size<3 && g++<50){
+       const wh=pick([h%12+1,(h+10)%12+1,rnd(1,12),m?h:(h%12)+1]), wm=age==='little'?0:pick([...new Set([0,30,m])]);
+       if(!(wh===h&&wm===m)) wrongs.add(wh+':'+wm);
+     }
+     const W=[...wrongs].slice(0,3).map(x=>x.split(':').map(Number));
+     const kind = age==='little' ? pick(['read','pick','set','set']) : pick(['read','pick','digital','set','set']);
+     const fact = m===0 ? `The short hand is on ${h} and the long hand is on 12 — ${timeName(h,m)}.`
+       : m===30 ? `The long hand is on 6 — half past ${h} (${digital(h,m)}).`
+       : `${timeName(h,m)} is ${digital(h,m)}.`;
+     if(kind==='set'){
+       const step= age==='little'?60:15;
+       return {q:`Set the clock to ${timeName(h,m)}`, say:`Move the hands to show ${timeName(h,m)}. Then tap check.`,
+         show:`<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:8px">
+           <div id="setFace"></div>
+           <div class="setrow"><span>🔴 Short hand (hour)</span><button class="sbtn" onclick="moveSet(-60,true)">⟲</button><button class="sbtn" onclick="moveSet(60,true)">⟳</button></div>
+           ${age==='little'?'':`<div class="setrow"><span>🔵 Long hand (minutes)</span><button class="sbtn" onclick="moveSet(-${step})">⟲</button><button class="sbtn" onclick="moveSet(${step})">⟳</button></div>`}
+         </div>`,
+         opts:[{label:'<div style="text-align:center">✅ Check</div>',value:'__check'}], ans:h+':'+m, fact, set:true,
+         init(){ SC={t:(rnd(1,12)*60)}; if(SC.t/60===h) SC.t=((h%12)+1)*60; drawSet(); }};
+     }
+     if(kind==='pick'){
+       return {q:`Which clock shows ${timeName(h,m)}?`, say:`Which clock shows ${timeName(h,m)}?`, show:'🕰️',
+         opts:shuffle([[h,m],...W.slice(0,2)]).map(([a,b])=>({label:`<div style="text-align:center">${clockSVG(a,b,100)}</div>`,value:a+':'+b})),
+         ans:h+':'+m, fact, three:true};
+     }
+     if(kind==='digital'){
+       return {q:'What does a digital clock show for this time?', say:'What does a digital clock show for this time?', show:clockSVG(h,m),
+         opts:shuffle([[h,m],...W]).map(([a,b])=>({label:digital(a,b),value:a+':'+b})), ans:h+':'+m, fact};
+     }
+     return {q:'What time is it?', say:'What time does the clock show?', show:clockSVG(h,m),
+       opts:shuffle([[h,m],...W]).map(([a,b])=>({label:`<span style="font-size:21px">${timeName(a,b)}</span>`,value:a+':'+b})), ans:h+':'+m, fact};
+   }},
+ logic:{world:'code',ic:'🧩',name:'Logical Thinking',sub:'Reasoning',
+   make(){
+     const kind=pick(['odd','odd','heavy','day','riddle']);
+     if(kind==='odd'){
+       const CATS={fruit:['🍎','🍌','🍇','🍓','🍊'],animal:['🐶','🐱','🐮','🐑','🐴'],vehicle:['🚗','🚌','🚲','✈️','🚂'],ball:['⚽','🏀','🎾','🏐','🏈']};
+       const ks=Object.keys(CATS), a=pick(ks); let b=pick(ks); while(b===a) b=pick(ks);
+       const odd=pick(CATS[b]); const items=shuffle([...shuffle(CATS[a]).slice(0,3),odd]);
+       const nm={fruit:'fruit',animal:'animal',vehicle:'vehicle',ball:'ball'};
+       return {q:'Which one does NOT belong?', say:'Which one does not belong?', show:'',
+         opts:items.map(e=>({label:`<span style="font-size:44px">${e}</span>`,value:e})), ans:odd,
+         fact:`The others are all ${nm[a]}s, but ${odd} is a ${nm[b]}!`};
+     }
+     if(kind==='heavy'){
+       const [h,l]=pick([['🐘','🐭'],['🚌','🚲'],['🍉','🍒'],['🐄','🐔'],['🏠','📦']]);
+       const askH=Math.random()<.5;
+       return {q:`Which is ${askH?'HEAVIER':'LIGHTER'}?`, say:`Which is ${askH?'heavier':'lighter'}?`, show:'⚖️',
+         opts:shuffle([h,l]).map(e=>({label:`<span style="font-size:48px">${e}</span>`,value:e})), ans:askH?h:l,
+         fact:`${h} is heavier than ${l}.`};
+     }
+     if(kind==='day'){
+       const D=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+       const i=rnd(0,6), tom=Math.random()<.6, ans=tom?D[(i+1)%7]:D[(i+6)%7];
+       const opts=shuffle([ans,...shuffle(D.filter(d=>d!==ans)).slice(0,2)]);
+       return {q:`Today is ${D[i]}. What day was ${tom?'TOMORROW':'YESTERDAY'}?`.replace('was TOMORROW','is TOMORROW'),
+         say:`Today is ${D[i]}. What day is ${tom?'tomorrow':'yesterday'}?`, show:'📅',
+         opts:opts.map(d=>({label:`<span style="font-size:22px">${d}</span>`,value:d})), ans, fact:`Yes! ${ans}.`, three:true};
+     }
+     const [clue,ans,others]=pick([
+       ['I have 4 legs and I say "Moo". Who am I?','🐄',['🐶','🐔']],
+       ['I am yellow and monkeys love to eat me. What am I?','🍌',['🍎','🥕']],
+       ['I shine in the sky in the day. What am I?','☀️',['🌙','⭐']],
+       ['You kick me into the goal. What am I?','⚽',['🏏','🎾']],
+       ['I have wings and I fly people far away. What am I?','✈️',['🚌','🚂']],
+       ['I melt in the sun and I am very cold. What am I?','🧊',['🪨','🍞']]]);
+     return {q:clue, say:clue, show:'🤔', opts:shuffle([ans,...others]).map(e=>({label:`<span style="font-size:44px">${e}</span>`,value:e})),
+       ans, fact:'You solved the riddle!', three:true};
+   }},
+ robot:{world:'code',ic:'🤖',name:'Coding: Directions',sub:'Scratch-style blocks',
+   make(){
+     const N=4, dx=rnd(1,3), dy= age==='little'? 0 : rnd(0,2);
+     const c0=rnd(0,N-1-dx), r0=rnd(0,N-1-dy), tr=r0+dy, tc=c0+dx;
+     let cells=''; for(let r=0;r<N;r++) for(let c=0;c<N;c++) cells+=`<div>${r===r0&&c===c0?'🤖':r===tr&&c===tc?'⚽':''}</div>`;
+     const flag=blk('ev','🟢 when flag clicked');
+     const mk=(arr)=>prog([flag,...arr]);
+     const rt=n=>blk('mv',`➡️ move right ${n}`), dn=n=>blk('mv',`⬇️ move down ${n}`), lf=n=>blk('mv',`⬅️ move left ${n}`), up=n=>blk('mv',`⬆️ move up ${n}`);
+     const good=[rt(dx)].concat(dy?[dn(dy)]:[]);
+     const bad1=[rt(dx===1?2:dx-1)].concat(dy?[dn(dy)]:[]);
+     const bad2=dy?[rt(dx),up(dy)]:[lf(dx)];
+     return {q:'Which code takes the robot to the ball?', say:'Which code takes the robot to the ball?',
+       show:`<div class="grid" style="grid-template-columns:repeat(${N},52px)">${cells}</div>`,
+       opts:shuffle([{label:mk(good),value:'g'},{label:mk(bad1),value:'b1'},{label:mk(bad2),value:'b2'}]), ans:'g', list:true,
+       fact:`Right ${dx}${dy?`, then down ${dy}`:''} — GOAL! 🤖⚽`};
+   }},
+ loops:{world:'code',ic:'🔁',name:'Coding: Loops & Order',sub:'Repeat & sequence',
+   make(){
+     if(Math.random()<.55){
+       const times=rnd(2,age==='little'?3:4), step=rnd(1,age==='little'?2:3), tot=times*step;
+       const p=`<div class="prog">${blk('ev','🟢 when flag clicked')}${blk('ct',`🔁 repeat ${times}`)}<div class="loop">${blk('mv',`move ${step} steps`)}</div></div>`;
+       return {q:'How many steps does the robot walk?', say:`Repeat ${times} times, move ${step} steps. How many steps in all?`,
+         show:p+'<span class="big">🤖</span>', opts:numOpts(tot,1,20), ans:tot,
+         fact:`${Array(times).fill(step).join(' + ')} = ${tot} steps!`};
+     }
+     const [a,b,c]=pick([['⚽ kick the ball','🏃 run to the ball','🎉 say "Goal!"'],
+       ['🦷 brush teeth','🛏️ wake up','🎒 go to school'],['🥚 egg','🐣 chick','🐔 hen']]);
+     // correct order is a fixed list per set
+     const ORDER={'⚽ kick the ball':['🏃 run to the ball','⚽ kick the ball','🎉 say "Goal!"'],'🦷 brush teeth':['🛏️ wake up','🦷 brush teeth','🎒 go to school'],'🥚 egg':['🥚 egg','🐣 chick','🐔 hen']};
+     const ord=ORDER[a]; const askFirst=Math.random()<.5;
+     const p=`<div class="prog">${blk('ev','🟢 when flag clicked')}${shuffle(ord).map(x=>blk('lk','❓')).join('')}</div>`;
+     return {q:`Put the code in order. Which block comes ${askFirst?'FIRST':'LAST'}?`, say:`Which comes ${askFirst?'first':'last'}?`,
+       show:p, opts:shuffle(ord).map(x=>({label:`<span style="font-size:20px">${x}</span>`,value:x})), ans:askFirst?ord[0]:ord[2], list:true,
+       fact:'Order: '+ord.join(' → ')};
+   }},
+ living:{world:'sci',ic:'🌱',name:'Living & Non-living',sub:'Living things',
+   make(){
+     const [e,alive,f]=pick(LIVING);
+     return {q:'Is this living or not living?', say:'Is this living, or not living?',
+       show:`<span class="big">${e}</span>`,
+       opts:[{label:'🌱 Living',value:1},{label:'🪨 Not living',value:0}], ans:alive, fact:f};
+   }},
+ homes:{world:'sci',ic:'🏡',name:'Animal Homes',sub:'Habitats',
+   make(){
+     const [e,home,f]=pick(HOMES);
+     const others=shuffle(Object.keys(HOME_OPTS).filter(k=>k!==home)).slice(0,age==='little'?1:3);
+     return {q:`Where does this animal live?`, say:'Where does this animal live?',
+       show:`<span class="big">${e}</span>`,
+       opts:shuffle([home,...others]).map(k=>({label:HOME_OPTS[k],value:k})), ans:home, fact:f};
+   }},
+ float:{world:'sci',ic:'🛁',name:'Float & Sink',sub:'Water',
+   make(){
+     const [e,fl,f]=pick(FLOAT);
+     return {q:'Will it float or sink?', say:'Will it float, or sink?',
+       show:`<span class="big">${e}</span><span style="font-size:52px">🌊</span>`,
+       opts:[{label:'⬆️ Float',value:1},{label:'⬇️ Sink',value:0}], ans:fl, fact:f};
+   }},
+ senses:{world:'sci',ic:'👀',name:'Our Senses',sub:'Five senses',
+   make(){
+     const [k,ic,part,f]=pick(SENSES);
+     const opts=shuffle(SENSES).slice(0,4); if(!opts.find(s=>s[0]===k)) opts[0]=SENSES.find(s=>s[0]===k);
+     return {q:`What helps you ${k} this?`, say:`What helps you ${k} this?`,
+       show:`<span class="big">${pick(SENSE_THINGS[k])}</span>`,
+       opts:shuffle(opts).map(s=>({label:`${s[1]}<small>${s[2]}</small>`,value:s[0]})), ans:k, fact:f};
+   }},
+ matter:{world:'sci',ic:'🧊',name:'Solid, Liquid, Gas',sub:'States of matter',bigOnly:true,
+   make(){
+     const [e,st,f]=pick(MATTER);
+     return {q:'Is it a solid, liquid or gas?', say:'Is it a solid, a liquid, or a gas?',
+       show:`<span class="big">${e}</span>`,
+       opts:Object.keys(MATTER_OPTS).map(k=>({label:MATTER_OPTS[k],value:k})), ans:st, fact:f, three:true};
+   }},
+ planets:{world:'sci',ic:'🪐',name:'Solar System',sub:'Planets in order',bigOnly:true,
+   make(){
+     const i=rnd(1,7); const ans=PLANETS[i+1];
+     const opts=shuffle([ans,...shuffle(PLANETS.slice(1).filter(p=>p!==ans)).slice(0,3)]);
+     return {q:`Flying out from the Sun… after ${PLANETS[i].replace(/[^\w ]/g,'').trim()} comes?`,
+       say:`Which planet comes after ${PLANETS[i].replace(/[^\w ]/g,'').trim()}?`,
+       show:PLANETS.slice(0,i+1).map(p=>`<span style="font-size:20px;background:#eef;border-radius:10px;padding:2px 8px">${p}</span>`).join('→')+' → ❓',
+       opts:opts.map(p=>({label:`<span style="font-size:20px">${p}</span>`,value:p})), ans,
+       fact:`${ans.replace(/[^\w ]/g,'').trim()} is planet number ${i+1}!`};
+   }}
+};
+
+
+const ex=(big,cap)=>`<div class="ex">${big}${cap?`<small>${cap}</small>`:''}</div>`;
+const tip=t=>`<div class="tip">💡 ${t}</div>`;
+const LESSONS={
+ count:[{h:'Counting objects',b:'We count by touching each thing <b>one time</b> and saying the next number.'+ex('🍎 🍎 🍎 🍎 🍎','1, 2, 3, 4, 5 → five apples')+tip('The last number you say tells you how many there are.')}],
+ add:[{h:'Adding means putting together',b:'When we <b>add</b> (+), we join two groups and count all of them.'+ex('🍌🍌 + 🍌🍌🍌','2 + 3 = 5')},
+      {h:'Subtracting means taking away',b:'When we <b>subtract</b> (−), some things go away and we count what is left.'+ex('🎈🎈🎈🎈🎈 − 🎈🎈','5 − 2 = 3')+tip('For subtraction, start at the big number and count back.')}],
+ more:[{h:'More and less',b:'The group with <b>more</b> things has the bigger number.'+ex('⚽⚽⚽⚽ &nbsp;|&nbsp; ⚽⚽','4 is more than 2. 2 is less than 4.')},
+       {h:'Comparing big numbers',b:'For two-digit numbers, look at the <b>tens</b> first.'+ex('<b>4</b>7 &nbsp; and &nbsp; <b>3</b>9','4 tens is more than 3 tens, so 47 is bigger.')+tip('If the tens are the same, look at the ones.')}],
+ pattern:[{h:'What is a pattern?',b:'A pattern is something that <b>repeats again and again</b> in the same order.'+ex('🔴🔵🔴🔵🔴🔵','red, blue, red, blue…')},
+          {h:'Number patterns',b:'Numbers can make patterns too. Find what is <b>added each time</b>.'+ex('2, 4, 6, 8, <b>10</b>','add 2 each time')}],
+ goal:[{h:'Story sums',b:'A word problem is a small story with a sum inside.'+ex('🔵 3 goals + 🔴 2 goals','How many goals in total? 3 + 2 = 5')+tip('"In total" or "altogether" means ADD. "How many more" means SUBTRACT the smaller from the bigger.')}],
+ time:[
+   {h:'Meet the clock',b:'A clock has <b>12 numbers</b> and <b>two hands</b>.<br>🔴 The <b>short hand</b> shows the <b>hour</b>.<br>🔵 The <b>long hand</b> shows the <b>minutes</b>.'+ex(clockSVG(3,0),"3 o'clock")},
+   {h:"O'clock",b:"When the <b>long hand points to 12</b>, it is an <b>o'clock</b> time. Read the number the short hand points to."+ex(clockSVG(7,0),"7 o'clock · 7:00")+tip('Hands move clockwise: 1, 2, 3… round to 12.')},
+   {h:'Half past',b:'When the <b>long hand points to 6</b>, half an hour has gone. The short hand is <b>halfway</b> between two numbers.'+ex(clockSVG(4,30),'half past 4 · 4:30')+tip('1 hour = 60 minutes. Half an hour = 30 minutes.')},
+   {h:'Quarter past and quarter to',b:'Long hand on <b>3</b> → <b>quarter past</b> (15 minutes).<br>Long hand on <b>9</b> → <b>quarter to</b> the next hour (45 minutes).'+ex(clockSVG(2,15,130)+' '+clockSVG(5,45,130),'quarter past 2 (2:15) · quarter to 6 (5:45)')},
+   {h:'Time in our day',b:'🌅 Morning: wake up, go to school<br>☀️ Afternoon: lunch, come home<br>🌙 Night: dinner, sleep'+tip('There are 24 hours in one day.')}
+ ],
+ tens:[{h:'Tens and ones',b:'Ten ones make <b>one ten</b>. We bundle 10 together.'+ex('<div class="tens" style="justify-content:center"><div class="ten">'+'<i></i>'.repeat(10)+'</div></div>','1 ten = 10 ones')},
+       {h:'Reading a number',b:'In <b>34</b>, the 3 means 3 tens and the 4 means 4 ones.'+ex('<div style="display:flex;justify-content:center;align-items:flex-end;gap:10px"><div class="tens">'+('<div class="ten">'+'<i></i>'.repeat(10)+'</div>').repeat(3)+'</div><div>'+'<span class="one"></span>'.repeat(4)+'</div></div>','30 + 4 = 34')}],
+ money:[{h:'Our money: Rupees (₹)',b:'In India we use coins of ₹1, ₹2, ₹5 and ₹10.'+ex('<span class="coin">₹1</span> <span class="coin">₹2</span> <span class="coin big">₹5</span> <span class="coin big">₹10</span>')},
+        {h:'Adding coins',b:'To find how much money, <b>add the coins</b>. Start with the biggest coin.'+ex('<span class="coin big">₹5</span> <span class="coin">₹2</span> <span class="coin">₹1</span>','5 + 2 + 1 = ₹8')}],
+ shapes:[{h:'Flat shapes',b:'Shapes have <b>sides</b> (straight lines) and <b>corners</b>.'+ex('⚪ 🔺 🟥 ▬','circle · triangle · square · rectangle')},
+         {h:'Counting corners',b:'<b>Circle</b>: 0 corners<br><b>Triangle</b>: 3 sides, 3 corners<br><b>Square</b>: 4 equal sides, 4 corners<br><b>Rectangle</b>: 4 sides (2 long, 2 short), 4 corners'+tip('Look around you: a door is a rectangle, a pizza slice is a triangle!')}],
+ logic:[{h:'Odd one out',b:'Find the thing that is <b>different</b> from the others.'+ex('🍎 🍌 🍇 🚗','The car is not a fruit!')},
+        {h:'Thinking step by step',b:'<b>Heavy or light?</b> An elephant is heavier than a mouse.<br><b>Days:</b> Monday → Tuesday → Wednesday → Thursday → Friday → Saturday → Sunday.'+tip('Tomorrow is the NEXT day. Yesterday is the day BEFORE.')}],
+ robot:[{h:'What is coding?',b:'Coding means giving a computer or robot <b>instructions in order</b>. In Scratch we snap coloured blocks together.'+ex(prog([blk('ev','🟢 when flag clicked'),blk('mv','➡️ move right 2')]),'The program starts when the green flag is clicked.')},
+        {h:'Moving on a grid',b:'Count the boxes the robot must go <b>right</b> or <b>down</b>, then choose the blocks.'+ex('🤖 ⬜ ⬜ ⚽','right 3 steps → ➡️ move right 3')+tip('Up ⬆️, down ⬇️, left ⬅️, right ➡️ — check the direction!')}],
+ loops:[{h:'Repeat (a loop)',b:'A <b>repeat</b> block does the blocks inside it again and again.'+ex(`<div class="prog" style="display:inline-flex">${blk('ct','🔁 repeat 3')}<div class="loop">${blk('mv','move 2 steps')}</div></div>`,'2 + 2 + 2 = 6 steps')},
+        {h:'Order matters',b:'Computers follow blocks <b>from top to bottom</b>. The order must be correct.'+ex('🏃 → ⚽ → 🎉','run to the ball → kick → say "Goal!"')}],
+ pushpull:[{h:'Push and pull',b:'A <b>push</b> moves something <b>away</b> from you. A <b>pull</b> moves it <b>towards</b> you.'+ex('⚽👉 &nbsp; 🪢👈','kicking = push · tug of war = pull')+tip('A push or pull is called a FORCE.')}],
+ living:[{h:'Living things',b:'Living things <b>breathe, eat, grow</b> and make young ones.'+ex('🐶 🌳 🐦 👶')},
+         {h:'Non-living things',b:'Non-living things do <b>not</b> breathe, eat or grow.'+ex('🪨 🚗 🧸 ✏️')+tip('Plants are living — they need water, air and sunlight.')}],
+ homes:[{h:'Animal homes',b:'Every animal lives where it can find food and stay safe.'+ex('🐟🌊 &nbsp; 🐒🌳 &nbsp; 🐪🏜️','water · trees · desert')+ex('🐧🧊 &nbsp; 🐄🚜','ice · farm')}],
+ float:[{h:'Float or sink?',b:'Light things like wood and things full of air <b>float</b>. Heavy things like stones and metal <b>sink</b>.'+ex('🪵 ⚽ 🦆 ⬆️ &nbsp; 🪨 🔑 🪙 ⬇️')}],
+ senses:[{h:'Our five senses',b:'👀 eyes — see<br>👂 ears — hear<br>👃 nose — smell<br>👅 tongue — taste<br>✋ skin — touch'}],
+ matter:[{h:'Solid, liquid, gas',b:'<b>Solid</b> keeps its shape 🧱<br><b>Liquid</b> flows and takes the shape of its pot 💧<br><b>Gas</b> spreads everywhere, often we cannot see it 💨'+tip('Ice (solid) melts into water (liquid). Boiling water makes steam (gas).')}],
+ planets:[{h:'Our Solar System',b:'Eight planets go round the Sun. In order:'+ex('<div style="font-size:20px">☀️ Mercury → Venus → Earth 🌍 → Mars → Jupiter → Saturn 🪐 → Uranus → Neptune</div>')+tip('Remember: "My Very Educated Mother Just Served Us Noodles".')}]
+};
+
+
+function clockSVG(h,m,size=170){
+  const c=60, ang=(d)=>(d-90)*Math.PI/180;
+  const hand=(deg,len,w,col)=>`<line x1="${c}" y1="${c}" x2="${(c+len*Math.cos(ang(deg))).toFixed(1)}" y2="${(c+len*Math.sin(ang(deg))).toFixed(1)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+  let nums=''; for(let i=1;i<=12;i++){ const a=ang(i*30); nums+=`<text x="${(c+44*Math.cos(a)).toFixed(1)}" y="${(c+44*Math.sin(a)+4.5).toFixed(1)}" font-size="13" font-weight="800" text-anchor="middle" fill="#24324a" font-family="Baloo 2,sans-serif">${i}</text>`; }
+  let ticks=''; for(let i=0;i<60;i++){ const a=ang(i*6), r1=i%5?53:50; ticks+=`<line x1="${(c+r1*Math.cos(a)).toFixed(1)}" y1="${(c+r1*Math.sin(a)).toFixed(1)}" x2="${(c+56*Math.cos(a)).toFixed(1)}" y2="${(c+56*Math.sin(a)).toFixed(1)}" stroke="#9aa6b8" stroke-width="${i%5?0.8:1.6}"/>`; }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 120 120"><circle cx="60" cy="60" r="58" fill="#fff" stroke="#7b61ff" stroke-width="4"/>${ticks}${nums}
+    ${hand((h%12)*30+m*0.5,28,6,'#ff5d8f')}${hand(m*6,42,3.5,'#2b7bff')}<circle cx="60" cy="60" r="4" fill="#24324a"/></svg>`;
+}
+let SC={t:720};
+function drawSet(){ const hh=Math.floor(SC.t/60)%12||12, mm=SC.t%60; const f=document.getElementById('setFace'); if(f) f.innerHTML=clockSVG(hh,mm,190); }
+function moveSet(d,hourOnly){ SC.t=((SC.t+d)%720+720)%720; drawSet(); }
+function setValue(){ const hh=Math.floor(SC.t/60)%12||12, mm=SC.t%60; return hh+':'+mm; }
+const timeName=(h,m)=> m===0?`${h} o'clock`: m===30?`half past ${h}`: m===15?`quarter past ${h}`:`quarter to ${h%12+1}`;
+const digital=(h,m)=>`${h}:${String(m).padStart(2,'0')}`;
+
+/* ---------- home ---------- */
+function renderHome(){
+  $('starCount').textContent=Object.keys(best).filter(k=>k.startsWith(age+'_')).length;
+  document.querySelectorAll('.age button').forEach(b=>b.classList.toggle('on',b.dataset.age===age));
+  $('snd').textContent=soundOn?'🔊':'🔇';
+  $('greet').textContent=`Hi ${KID}! 👋 Pick a topic to learn today.`;
+  ['math','code','sci'].forEach(w=>{
+    const box=$({math:'mathGames',code:'codeGames',sci:'sciGames'}[w]); box.innerHTML='';
+    Object.entries(GAMES).forEach(([id,g])=>{
+      if(g.world!==w) return;
+      if(g.bigOnly && age==='little') return;
+      if(id==='senses' && age==='big') return;
+      const b=best[age+'_'+id];
+      const btn=document.createElement('button'); btn.className='game';
+      btn.innerHTML=`<span class="ic">${g.ic}</span><b>${g.name}</b><small>${g.sub}</small><span class="best">${b!==undefined?`✓ Done · ${b}/5`:''}</span>`;
+      btn.onclick=()=>openLesson(id); box.appendChild(btn);
+    });
+  });
+}
+document.querySelectorAll('.age button').forEach(b=>b.onclick=()=>{ age=b.dataset.age; store.set('age',age); tone([500,700]); renderHome(); });
+$('snd').onclick=()=>{ soundOn=!soundOn; store.set('sound',soundOn); renderHome(); tone([600]); };
+
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id)); window.scrollTo(0,0); }
+
+/* ---------- play ---------- */
+function start(id){ current=id; qIndex=0; roundStars=0; $('roundStars').textContent=0; show('play'); next(); }
+function lessonFor(id){ const L=LESSONS[id]||[]; return (id==='time'&&age==='little')? [L[0],L[1],L[4]] : L; }
+function openLesson(id){ current=id; slide=0; show('learn'); renderSlide(); }
+let slide=0;
+function renderSlide(){
+  const L=lessonFor(current); const sl=L[slide];
+  $('lTopic').textContent=GAMES[current].ic+' '+GAMES[current].name;
+  $('lCount').textContent=`📖 Lesson ${slide+1} of ${L.length}`;
+  $('lHead').textContent=sl.h; $('lBody').innerHTML=sl.b;
+  $('lPrev').style.visibility= slide===0?'hidden':'visible';
+  $('lNext').textContent= slide===L.length-1?'✏️ Start practice':'Next ▶';
+  window.scrollTo(0,0);
+  speak(sl.h+'. '+$('lBody').innerText);
+}
+$('lNext').onclick=()=>{ const L=lessonFor(current); if(slide<L.length-1){slide++;renderSlide();} else start(current); };
+$('lPrev').onclick=()=>{ if(slide>0){slide--;renderSlide();} };
+$('lQuit').onclick=()=>{ try{speechSynthesis.cancel();}catch(e){} renderHome(); show('home'); };
+$('lSay').onclick=()=>{ const was=soundOn; soundOn=true; speak($('lHead').textContent+'. '+$('lBody').innerText); soundOn=was; };
+function next(){
+  if(qIndex>=ROUND) return finish();
+  $('bar').style.width=(qIndex/ROUND*100)+'%';
+  currentQ=GAMES[current].make(); firstTry=true;
+  $('qText').textContent=currentQ.q;
+  $('qShow').innerHTML=currentQ.show;
+  $('fact').textContent=''; $('fact').className='fact';
+  const o=$('opts'); o.innerHTML='';
+  o.className='opts'+(currentQ.list?' list':(currentQ.three||currentQ.opts.length===3)?' three':'');
+  currentQ.opts.forEach(op=>{
+    const b=document.createElement('button'); b.className='opt'; b.innerHTML=op.label;
+    b.onclick=()=>answer(b,op.value==='__check'?setValue():op.value); o.appendChild(b);
+  });
+  if(currentQ.init) currentQ.init();
+  o.className=o.className+(currentQ.set?' list':'');
+  speak(currentQ.say||currentQ.q);
+}
+function answer(btn,val){
+  if(val===currentQ.ans){
+    btn.classList.add('right'); sGood();
+    document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+    if(firstTry){ roundStars++; $('roundStars').textContent=roundStars; }
+    $('fact').textContent='✅ '+currentQ.fact; speak(currentQ.fact);
+    qIndex++; $('bar').style.width=(qIndex/ROUND*100)+'%';
+    setTimeout(next,1700);
+  } else {
+    btn.classList.add('wrong'); btn.disabled=true; sBad(); firstTry=false;
+    if(currentQ.set){ setTimeout(()=>{btn.classList.remove('wrong');btn.disabled=false;},700); $('fact').className='fact oops'; $('fact').textContent='Not yet — check the short hand and the long hand 🙂'; return; }
+    $('fact').className='fact oops'; $('fact').textContent=pick(['Try again! 💪','Almost! Have another go 🙂','Oops — look again 👀']);
+  }
+}
+function finish(){
+  const key=age+'_'+current; best[key]=roundStars; store.set('best',best);
+  $('earned').textContent=`${roundStars} / ${ROUND}`;
+  $('trophy').textContent='📘';
+  $('endTitle').textContent= roundStars>=4?`Well done, ${KID}!`: roundStars>=2?`Good work, ${KID}!`:`Keep practising, ${KID}!`;
+  $('endMsg').textContent= roundStars>=4?`You got ${roundStars} of ${ROUND} right first time. You understand ${GAMES[current].name}!`
+     :`You got ${roundStars} of ${ROUND} right first time. Read the lesson again, then practise once more.`;
+  show('end'); sWin(); speak($('endTitle').textContent); confetti();
+}
+function confetti(){ return;
+  const bits=['🎉','⭐','🎈','✨','🌟','🍬'];
+  for(let i=0;i<28;i++){
+    const s=document.createElement('div'); s.className='confetti'; s.textContent=pick(bits);
+    s.style.left=rnd(0,100)+'vw'; s.style.animationDuration=(rnd(18,35)/10)+'s'; s.style.animationDelay=(rnd(0,8)/10)+'s';
+    document.body.appendChild(s); setTimeout(()=>s.remove(),5000);
+  }
+}
+$('say').onclick=()=>{ const was=soundOn; soundOn=true; speak(currentQ.say||currentQ.q); soundOn=was; };
+$('quit').onclick=()=>{ try{speechSynthesis.cancel();}catch(e){} renderHome(); show('home'); };
+$('again').onclick=()=>start(current);
+$('reread').onclick=()=>openLesson(current);
+$('toHome').onclick=()=>{ renderHome(); show('home'); };
+
+renderHome();
+</script>
+</body>
+</html>
