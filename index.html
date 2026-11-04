@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Kafeel's Learn &amp; Practice</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7b61ff">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -252,6 +256,8 @@ const sBad =()=>tone([300,220],.15,'sawtooth');
 const sWin =()=>tone([523,659,784,1046,784,1046],.12,'triangle');
 function speak(text){
   if(!soundOn) return;
+  const clean=text.replace(/[^\w\s?,.!'+-]/g,'');
+  try{ if(window.AndroidTTS){ AndroidTTS.speak(clean); return; } }catch(e){}
   try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text.replace(/[^\w\s?,.!'+-]/g,'')); u.rate=.9; u.pitch=1.2; speechSynthesis.speak(u);}catch(e){}
 }
 
@@ -731,6 +737,7 @@ $('reread').onclick=()=>openLesson(current);
 $('toHome').onclick=()=>{ renderHome(); show('home'); };
 
 renderHome();
+if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){} }
 </script>
 </body>
 </html>
