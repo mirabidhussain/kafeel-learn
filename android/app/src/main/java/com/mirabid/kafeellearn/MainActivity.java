@@ -32,7 +32,13 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
-        web.setWebViewClient(new WebViewClient());
+        s.setAllowFileAccess(true);
+        s.setBlockNetworkLoads(true);          // everything is inside the app
+        s.setTextZoom(100);                    // keep layout steady if phone font size is large
+        web.setWebViewClient(new WebViewClient() {
+            @Override public boolean shouldOverrideUrlLoading(WebView v, android.webkit.WebResourceRequest r) { return true; } // never leave the app
+        });
+        web.setBackgroundColor(Color.parseColor("#e9f6ff"));
         web.addJavascriptInterface(new Speaker(), "AndroidTTS");
         setContentView(web);
         web.loadUrl("file:///android_asset/index.html");

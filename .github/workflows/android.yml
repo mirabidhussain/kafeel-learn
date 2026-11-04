@@ -17,10 +17,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
-      - name: Copy web app into the Android assets
+      - name: Download the app font (bundled so the app works offline)
         run: |
-          mkdir -p android/app/src/main/assets
-          cp index.html icon-192.png android/app/src/main/assets/
+          mkdir -p /tmp/font && cd /tmp/font
+          npm pack @fontsource/baloo-2
+          tar xzf fontsource-baloo-2-*.tgz
+      - name: Bundle the web app into the Android assets (fully offline)
+        run: python3 tools/make_offline.py /tmp/font/package/files
       - name: Build APK
         working-directory: android
         run: gradle assembleDebug --no-daemon
@@ -36,4 +39,4 @@ jobs:
         run: |
           gh release delete latest --yes --cleanup-tag || true
           gh release create latest KafeelLearn.apk --title "Kafeel's Learn & Practice (Android)" \
-            --notes "Download KafeelLearn.apk on the Android phone and open it to install. Allow 'Install unknown apps' if Android asks."
+            --notes "Fully offline app - no internet or browser needed after install. Download KafeelLearn.apk on the Android phone and open it to install. Allow 'Install unknown apps' if Android asks."
