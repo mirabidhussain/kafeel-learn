@@ -44,7 +44,7 @@ public class MainActivity extends Activity {
         // close the add/edit sheet or a dialog first; otherwise leave the app
         web.evaluateJavascript(
             "(function(){var d=document.getElementById('dlg'); if(d.classList.contains('on')){d.classList.remove('on');return 'y'}" +
-            "if(document.getElementById('sheet').classList.contains('on')){closeSheet();return 'y'} return 'n'})()",
+            "if(document.getElementById('sheet').classList.contains('on')||document.getElementById('cfSheet').classList.contains('on')){closeSheet();return 'y'} return 'n'})()",
             r -> { if (r != null && r.contains("n")) MainActivity.super.onBackPressed(); });
     }
 }

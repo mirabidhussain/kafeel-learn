@@ -82,6 +82,25 @@
   .chip{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:8px 2px;font:inherit;font-size:11px;cursor:pointer;color:var(--ink)}
   .chip span{display:block;font-size:22px}
   .chip.on{border-color:var(--brand);background:#e7f7f0;font-weight:700}
+.catnote{display:none;background:#fff7d6;border-radius:12px;padding:8px 12px;font-size:14px;margin-top:10px;white-space:pre-wrap}
+  .catnote.on{display:block}
+  .sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .sugg button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}
+  .cn-row{display:flex;gap:10px;align-items:flex-start;margin:10px 0}
+  .cn-row .ic{margin-top:2px}
+  .cn-row textarea{padding:8px 10px;font-size:14px;min-height:42px}
+  .cn-row b{display:block;font-size:13px;margin-bottom:4px}
+  .cat-row .cn{font-size:12px;color:var(--soft);margin-top:4px;white-space:pre-wrap}
+  .chip{font-size:10.5px;line-height:1.15}
+.cfbtn{width:100%;border:1.5px dashed var(--brand);background:#e7f7f0;color:var(--brand-d);border-radius:14px;padding:12px;
+         font:inherit;font-weight:700;font-size:15px;margin-bottom:10px;cursor:pointer}
+  .cfrow{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer;margin:0;color:var(--ink);font-size:15px;font-weight:400}
+  .cfrow.all{font-weight:700;border-bottom:2px solid var(--line)}
+  .cfrow input{width:24px;height:24px;flex:none;accent-color:var(--brand);margin:0}
+  .cfrow .mid{flex:1;min-width:0}
+  .cfrow .mid b{display:block;font-size:15px}
+  .cfrow .mid span{display:block;color:var(--soft);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cfrow.done{opacity:.5}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#1d2433;color:#fff;padding:10px 16px;border-radius:12px;
          font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
@@ -111,6 +130,7 @@
 
   <main>
     <section class="view on" id="v-list">
+      <button class="cfbtn" id="cfOpen" style="display:none"></button>
       <input class="search" id="search" placeholder="🔍 Search notes or categories">
       <div id="list"></div>
     </section>
@@ -133,6 +153,12 @@
         <input id="budget" type="number" inputmode="decimal" placeholder="e.g. 20000">
         <div class="note">Leave empty for no budget.</div>
         <button class="btn pri" id="saveBudget">Save budget</button>
+      </div>
+      <div class="card">
+        <h3>Category notes</h3>
+        <div class="note">Write a note for any category (e.g. Car: "EMI due on 5th"). It shows when you add an expense and in the Summary.</div>
+        <div id="cnList"></div>
+        <button class="btn pri" id="saveCn">Save category notes</button>
       </div>
       <div class="card">
         <h3>Backup</h3>
@@ -160,18 +186,32 @@
 <div class="shade" id="shade"></div>
 <div class="sheet" id="sheet">
   <div class="grab"></div>
-  <h3 id="sheetTitle" style="margin-left:0">Add expense</h3>
+  <div style="display:flex;align-items:center;justify-content:space-between"><h3 id="sheetTitle" style="margin:4px 0 10px">Add expense</h3><button id="fClose" aria-label="Close" style="border:0;background:var(--bg);width:38px;height:38px;border-radius:12px;font-size:18px;cursor:pointer">✕</button></div>
   <div class="amtbox"><span>₹</span><input id="fAmt" type="number" inputmode="decimal" placeholder="0" step="0.01"></div>
   <label>Category</label>
   <div class="chips" id="chips"></div>
+  <div class="catnote" id="catNote"></div>
   <div class="row2">
     <div><label>Date</label><input id="fDate" type="date"></div>
     <div><label>Paid by</label><select id="fPay"><option>Cash</option><option>UPI</option><option>Card</option><option>Bank</option></select></div>
   </div>
   <label>Note (optional)</label>
   <input id="fNote" placeholder="e.g. Vegetables from market" maxlength="80">
+  <div class="sugg" id="sugg"></div>
   <button class="btn pri" id="fSave">Save</button>
   <button class="btn del" id="fDel" style="display:none">Delete this expense</button>
+</div>
+
+<div class="sheet" id="cfSheet">
+  <div class="grab"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <h3 id="cfTitle" style="margin:4px 0 4px">Carry forward</h3>
+    <button id="cfClose" aria-label="Close" style="border:0;background:var(--bg);width:38px;height:38px;border-radius:12px;font-size:18px;cursor:pointer">✕</button>
+  </div>
+  <div class="note" id="cfSub" style="margin:0 0 8px"></div>
+  <label class="cfrow all"><input type="checkbox" id="cfAll"><span>Select all</span></label>
+  <div id="cfList"></div>
+  <button class="btn pri" id="cfAdd">Add</button>
 </div>
 
 <div class="dlg" id="dlg"><div class="box">
@@ -183,10 +223,11 @@
 <script>
 const $=id=>document.getElementById(id);
 const CATS=[
- ['Food','🍔','#ff8a3d'],['Groceries','🛒','#2bb673'],['Transport','🚌','#3b82f6'],['Fuel','⛽','#8b5cf6'],['Bills','💡','#f5a524'],
- ['Shopping','🛍️','#ec4899'],['Health','💊','#ef4444'],['Education','📚','#0ea5e9'],['Kids','🧸','#14b8a6'],['Other','📦','#64748b']
+ ['Self','🙋','#3b82f6'],['Office','💼','#0ea5e9'],['Social','🤝','#ec4899'],['Entertainment','🎬','#a855f7'],['Wages','👷','#f97316'],
+ ['Credit card bill','💳','#ef4444'],['Fuel','⛽','#8b5cf6'],['Household','🏠','#f5a524'],['Groceries','🛒','#2bb673'],['Others','📦','#64748b'],
+ ['Kids','🧸','#14b8a6'],['Car','🚗','#2563eb'],['Husband','👨','#0f766e'],['Liability','🏦','#b91c1c']
 ];
-const catOf=n=>CATS.find(c=>c[0]===n)||CATS[CATS.length-1];
+const catOf=n=>CATS.find(c=>c[0]===n)||[n,'📦','#64748b'];   // older entries keep their own name
 
 /* ---- storage (works in browser and Android app; falls back to memory) ---- */
 const mem={};
@@ -196,6 +237,7 @@ const store={
 };
 let items=store.get('items',[]);         // {id, amt, cat, date:'YYYY-MM-DD', note, pay}
 let budget=store.get('budget',null);
+let catNotes=store.get('catNotes',{});   // {category: note}
 const save=()=>store.set('items',items);
 
 /* ---- helpers ---- */
@@ -235,7 +277,7 @@ function render(){
     $('budgetBar').classList.toggle('over',tot>budget);
     $('budgetBar').firstElementChild.style.width=pct+'%';
   } else $('budgetBox').style.display='none';
-  renderList(list); renderStats(list,tot);
+  renderList(list); renderStats(list,tot); renderCfBtn();
 }
 function renderList(list){
   const q=$('search').value.trim().toLowerCase();
@@ -264,7 +306,7 @@ function renderStats(list,tot){
   const rows=Object.entries(sums).sort((a,b)=>b[1]-a[1]);
   $('cats').innerHTML= rows.length? rows.map(([n,v])=>{const c=catOf(n),p=tot?v/tot*100:0;
     return `<div class="cat-row"><div class="top"><span>${c[1]} <b>${n}</b></span><span><b>${inr(v)}</b> · ${p.toFixed(0)}%</span></div>
-      <div class="cbar"><i style="width:${p}%;background:${c[2]}"></i></div></div>`;}).join('')
+      <div class="cbar"><i style="width:${p}%;background:${c[2]}"></i></div>${catNotes[n]?`<div class="cn">📝 ${esc(catNotes[n])}</div>`:''}</div>`;}).join('')
     : '<div class="note">No expenses this month yet.</div>';
   const ms=[]; for(let i=5;i>=0;i--){ const d=new Date(cur.y,cur.m-i,1); ms.push({y:d.getFullYear(),m:d.getMonth()}); }
   const vals=ms.map(x=>inMonth(x.y,x.m).reduce((a,e)=>a+e.amt,0)); const mx=Math.max(1,...vals);
@@ -276,18 +318,27 @@ const short=n=>n>=100000?(n/100000).toFixed(1)+'L':n>=1000?(n/1000).toFixed(1)+'
 let editing=null, selCat='Food';
 $('chips').innerHTML=CATS.map(c=>`<button class="chip" data-c="${c[0]}"><span>${c[1]}</span>${c[0]}</button>`).join('');
 $('chips').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{selCat=b.dataset.c;markCat();});
-const markCat=()=>$('chips').querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b.dataset.c===selCat));
+const markCat=()=>{
+  $('chips').querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b.dataset.c===selCat));
+  const n=catNotes[selCat]; const box=$('catNote');
+  box.classList.toggle('on',!!n); box.textContent=n?`📝 ${selCat}: ${n}`:'';
+  // recent notes used in this category (newest first, unique)
+  const seen=new Set(), rec=[];
+  items.slice().sort((a,b)=>b.id-a.id).forEach(e=>{ const t=(e.note||'').trim(); if(e.cat===selCat&&t&&!seen.has(t.toLowerCase())&&rec.length<6){seen.add(t.toLowerCase());rec.push(t);} });
+  $('sugg').innerHTML=rec.map(t=>`<button type="button">${esc(t)}</button>`).join('');
+  $('sugg').querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{ $('fNote').value=rec[i]; });
+};
 function openSheet(e){
   editing=e||null;
   $('sheetTitle').textContent=e?'Edit expense':'Add expense';
   $('fAmt').value=e?e.amt:''; $('fNote').value=e?e.note:''; $('fDate').value=e?e.date:today();
-  $('fPay').value=e?e.pay:store.get('lastPay','Cash'); selCat=e?e.cat:store.get('lastCat','Food'); markCat();
+  $('fPay').value=e?e.pay:store.get('lastPay','Cash'); selCat=e?e.cat:store.get('lastCat','Groceries'); if(!e&&!CATS.some(c=>c[0]===selCat)) selCat='Groceries'; markCat();
   $('fDel').style.display=e?'block':'none';
   $('shade').classList.add('on'); $('sheet').classList.add('on');
   if(!e) setTimeout(()=>$('fAmt').focus(),250);
 }
-function closeSheet(){ $('shade').classList.remove('on'); $('sheet').classList.remove('on'); document.activeElement&&document.activeElement.blur(); }
-$('fab').onclick=()=>openSheet(); $('shade').onclick=closeSheet;
+function closeSheet(){ $('shade').classList.remove('on'); $('sheet').classList.remove('on'); $('cfSheet').classList.remove('on'); document.activeElement&&document.activeElement.blur(); }
+$('fab').onclick=()=>openSheet(); $('shade').onclick=closeSheet; $('fClose').onclick=closeSheet;
 $('fSave').onclick=()=>{
   const amt=parseFloat($('fAmt').value);
   if(!(amt>0)){ toast('Enter an amount'); $('fAmt').focus(); return; }
@@ -298,6 +349,46 @@ $('fSave').onclick=()=>{
   closeSheet(); render(); toast(editing?'Updated ✓':'Saved ✓');
 };
 $('fDel').onclick=()=>ask('Delete this expense?',()=>{ items=items.filter(x=>x!==editing); save(); closeSheet(); render(); toast('Deleted'); });
+
+/* ---- carry forward from previous month ---- */
+const prevOf=(y,m)=>m===0?{y:y-1,m:11}:{y,m:m-1};
+function cfSource(){ const p=prevOf(cur.y,cur.m); return {p,list:inMonth(p.y,p.m).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.id-b.id)}; }
+const already=src=>items.some(e=>e.fromId===src.id);
+function renderCfBtn(){
+  const {p,list}=cfSource(); const left=list.filter(e=>!already(e)).length;
+  const b=$('cfOpen'); b.style.display=list.length?'block':'none';
+  b.textContent= left? `↪ Carry forward from ${MON[p.m]} (${left} expense${left>1?'s':''})` : `✓ ${MON[p.m]} expenses carried forward`;
+}
+function openCf(){
+  const {p,list}=cfSource();
+  $('cfTitle').textContent=`Carry forward from ${MON[p.m]} ${p.y}`;
+  $('cfSub').textContent=`Tick the expenses to repeat in ${MON[cur.m]} ${cur.y}. They are added on the same date with the same amount and note — you can edit them after.`;
+  $('cfList').innerHTML=list.map(e=>{const c=catOf(e.cat), done=already(e);
+    // pre-tick expenses that were themselves carried forward last time (recurring ones)
+    return `<label class="cfrow ${done?'done':''}"><input type="checkbox" data-id="${e.id}" ${done?'checked disabled':e.carried?'checked':''}>
+      <div class="ic" style="background:${c[2]}22">${c[1]}</div>
+      <div class="mid"><b>${c[0]}</b><span>${done?'Already added · ':''}${e.note?esc(e.note)+' · ':''}${+e.date.slice(8)} ${MON[p.m]}</span></div>
+      <div class="amt" style="font-weight:800">${inr(e.amt)}</div></label>`;}).join('');
+  $('cfList').querySelectorAll('input').forEach(i=>i.onchange=updCf);
+  updCf(); $('shade').classList.add('on'); $('cfSheet').classList.add('on');
+}
+function cfPicked(){ return [...$('cfList').querySelectorAll('input:checked:not(:disabled)')].map(i=>items.find(e=>e.id==i.dataset.id)); }
+function updCf(){
+  const boxes=[...$('cfList').querySelectorAll('input:not(:disabled)')], pk=cfPicked();
+  $('cfAll').checked=boxes.length>0&&pk.length===boxes.length; $('cfAll').disabled=!boxes.length;
+  const sum=pk.reduce((a,e)=>a+e.amt,0);
+  $('cfAdd').textContent= pk.length? `Add ${pk.length} to ${MON[cur.m]} · ${inr(sum)}` : 'Tick expenses to add';
+  $('cfAdd').disabled=!pk.length; $('cfAdd').style.opacity=pk.length?1:.5;
+}
+$('cfAll').onchange=()=>{ $('cfList').querySelectorAll('input:not(:disabled)').forEach(i=>i.checked=$('cfAll').checked); updCf(); };
+$('cfOpen').onclick=openCf; $('cfClose').onclick=()=>closeSheet();
+$('cfAdd').onclick=()=>{
+  const pk=cfPicked(); if(!pk.length) return;
+  const last=new Date(cur.y,cur.m+1,0).getDate(); let id=Date.now();
+  pk.forEach(e=>{ const d=Math.min(+e.date.slice(8),last);
+    items.push({id:id++,amt:e.amt,cat:e.cat,note:e.note,pay:e.pay,date:`${key(cur.y,cur.m)}-${pad(d)}`,carried:true,fromId:e.id}); });
+  save(); closeSheet(); render(); toast(`${pk.length} expense${pk.length>1?'s':''} carried forward ✓`);
+};
 
 /* ---- nav, month, search ---- */
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
@@ -311,17 +402,24 @@ $('search').oninput=()=>renderList(inMonth(cur.y,cur.m));
 
 /* ---- settings ---- */
 $('budget').value=budget||'';
+function renderCn(){
+  $('cnList').innerHTML=CATS.map(c=>`<div class="cn-row"><div class="ic" style="background:${c[2]}22">${c[1]}</div>
+    <div style="flex:1"><b>${c[0]}</b><textarea rows="1" data-c="${c[0]}" maxlength="200" placeholder="Note for ${c[0]}">${esc(catNotes[c[0]]||'')}</textarea></div></div>`).join('');
+}
+renderCn();
+$('saveCn').onclick=()=>{ const n={}; $('cnList').querySelectorAll('textarea').forEach(t=>{ const v=t.value.trim(); if(v) n[t.dataset.c]=v; });
+  catNotes=n; store.set('catNotes',catNotes); render(); toast('Category notes saved ✓'); };
 $('saveBudget').onclick=()=>{ const v=parseFloat($('budget').value); budget=v>0?v:null; store.set('budget',budget); render(); toast(budget?'Budget saved ✓':'Budget removed'); };
 $('copyCsv').onclick=()=>{
   const rows=[['Date','Category','Amount','Paid by','Note']].concat(items.slice().sort((a,b)=>a.date<b.date?-1:1).map(e=>[e.date,e.cat,e.amt,e.pay,`"${(e.note||'').replace(/"/g,'""')}"`]));
   copy(rows.map(r=>r.join(',')).join('\n'));
 };
-$('copyBackup').onclick=()=>copy(JSON.stringify({app:'my-expenses',v:1,budget,items}));
+$('copyBackup').onclick=()=>copy(JSON.stringify({app:'my-expenses',v:2,budget,catNotes,items}));
 $('restore').onclick=()=>{
   try{ const d=JSON.parse($('restoreTxt').value);
     if(!d||!Array.isArray(d.items)) throw 0;
-    const ok=d.items.filter(e=>e&&e.amt>0&&/^\d{4}-\d\d-\d\d$/.test(e.date)).map(e=>({id:e.id||Date.now()+Math.random(),amt:+e.amt,cat:e.cat||'Other',date:e.date,note:e.note||'',pay:e.pay||'Cash'}));
-    ask(`Replace your expenses with ${ok.length} from the backup?`,()=>{ items=ok; budget=d.budget||null; store.set('budget',budget); $('budget').value=budget||''; save(); $('restoreTxt').value=''; render(); toast('Restored ✓'); });
+    const ok=d.items.filter(e=>e&&e.amt>0&&/^\d{4}-\d\d-\d\d$/.test(e.date)).map(e=>({id:e.id||Date.now()+Math.random(),amt:+e.amt,cat:e.cat||'Others',date:e.date,note:e.note||'',pay:e.pay||'Cash',...(e.carried?{carried:true}:{}),...(e.fromId?{fromId:e.fromId}:{})}));
+    ask(`Replace your expenses with ${ok.length} from the backup?`,()=>{ items=ok; budget=d.budget||null; catNotes=d.catNotes||catNotes; store.set('catNotes',catNotes); renderCn(); store.set('budget',budget); $('budget').value=budget||''; save(); $('restoreTxt').value=''; render(); toast('Restored ✓'); });
     $('dlgYes').textContent='Restore';
   }catch(e){ toast('That is not a valid backup'); }
 };
