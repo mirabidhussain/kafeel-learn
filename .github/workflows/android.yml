@@ -2,6 +2,7 @@ name: Build Android APK
 on:
   push:
     branches: [main]
+    paths-ignore: ['expenses/**', '.github/workflows/expenses.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -38,5 +39,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest KafeelLearn.apk --title "Kafeel's Learn & Practice (Android)" \
+          gh release create latest KafeelLearn.apk --latest --title "Kafeel's Learn & Practice (Android)" \
             --notes "Fully offline app - no internet or browser needed after install. Download KafeelLearn.apk on the Android phone and open it to install. Allow 'Install unknown apps' if Android asks."
